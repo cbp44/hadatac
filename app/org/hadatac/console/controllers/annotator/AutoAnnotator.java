@@ -6,13 +6,24 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.jena.query.DatasetAccessor;
+import org.apache.jena.query.DatasetAccessorFactory;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.update.UpdateExecutionFactory;
+import org.apache.jena.update.UpdateFactory;
+import org.apache.jena.update.UpdateProcessor;
+import org.apache.jena.update.UpdateRequest;
 import org.hadatac.entity.pojo.Credential;
 import org.hadatac.console.controllers.AuthApplication;
 import org.hadatac.console.controllers.annotator.routes;
@@ -23,15 +34,24 @@ import org.hadatac.console.models.LabKeyLoginForm;
 import org.hadatac.console.models.SysUser;
 import org.hadatac.console.views.html.annotator.*;
 import org.hadatac.console.views.html.triplestore.*;
+import org.hadatac.data.loader.AnnotationWorker;
+import org.hadatac.data.loader.DASchemaAttrGenerator;
+import org.hadatac.data.loader.DASchemaEventGenerator;
+import org.hadatac.data.loader.DASchemaObjectGenerator;
+import org.hadatac.data.loader.GeneralGenerator;
+import org.hadatac.data.loader.PVGenerator;
 import org.hadatac.console.views.html.*;
 import org.hadatac.entity.pojo.DataFile;
 import org.hadatac.entity.pojo.Measurement;
+import org.hadatac.entity.pojo.SDD;
 import org.hadatac.entity.pojo.DataAcquisition;
 import org.hadatac.entity.pojo.User;
 import org.hadatac.metadata.loader.LabkeyDataHandler;
 import org.hadatac.metadata.loader.ValueCellProcessing;
+import org.hadatac.utils.Collections;
 import org.hadatac.utils.ConfigProp;
 import org.hadatac.utils.Feedback;
+import org.hadatac.utils.NameSpaces;
 import org.hadatac.utils.State;
 import org.labkey.remoteapi.CommandException;
 
@@ -45,6 +65,20 @@ import play.mvc.BodyParser;
 import play.mvc.Http.MultipartFormData.FilePart;
 
 public class AutoAnnotator extends Controller {
+	
+	public static String study_id = "default-study";
+	public static final String kbPrefix = ConfigProp.getKbPrefix();
+	public static String SUBJECT_COLLECTION = "http://hadatac.org/ont/hasco/SubjectGroup";
+	public static String SAMPLE_COLLECTION = "http://hadatac.org/ont/hasco/SampleCollection";
+	public static String LOCATION_COLLECTION = "http://hadatac.org/ont/hasco/LocationCollection";
+	public static String TIME_COLLECTION = "http://hadatac.org/ont/hasco/TimeCollection";
+
+	public static String INDENT1 = "   ";
+	public static String INSERT_LINE1 = "INSERT DATA {  ";
+	public static String DELETE_LINE1 = "DELETE WHERE {  ";
+	public static String LINE3 = INDENT1 + "a         hasco:ObjectCollection;  ";
+	public static String DELETE_LINE3 = INDENT1 + " ?p ?o . ";
+	public static String LINE_LAST = "}  ";
 
 	@Restrict(@Group(AuthApplication.DATA_OWNER_ROLE))
 	public static Result index() {		
@@ -290,24 +324,153 @@ public class AutoAnnotator extends Controller {
 		}
 		File file = new File(path_proc + "/" + file_name);
 		file.renameTo(new File(destFolder + "/" + file_name));
-		deleteAddedTriples(file);
+		deleteAddedTriples(new File(destFolder + "/" + file_name));
 
 		return redirect(routes.AutoAnnotator.index());
-	}
+	}		
 	
 	@Restrict(@Group(AuthApplication.DATA_OWNER_ROLE))
 	public static void deleteAddedTriples(File file){
+		
 		System.out.println("Deleting the added triples from the moving file ...");
+		String file_name = file.getName();
+		
+//		if (file_name.startsWith("DA")) {
+//			tripleRemoveDAFile(file);
+//		}
+//		else if (file_name.startsWith("SID")) {
+//			tripleRemoveSampleIdFile(file);
+//		}
+//		else if (file_name.startsWith("PID")) {
+//			tripleRemoveSubjectIdFile(file);
+//		}
+//		else if (file_name.startsWith("STD")) {
+//			tripleRemoveStudyIdFile(file);
+//		}
+//		else if (file_name.startsWith("MAP")) {
+//			tripleRemoveMapFile(file);
+//		}
+//		else if (file_name.startsWith("ACQ")) {
+//			tripleRemoveACQFile(file);
+//		}
+		 if (file_name.startsWith("SDD")) {
+			tripleRemoveDataAcquisitionSchemaFile(file);
+		}
+	}
+	
+	private static void tripleRemoveDataAcquisitionSchemaFile(File file) {
+
+		List<Map<String, Object>> tbd = rowsPopulation(file);
+//		DatasetAccessor accessor = DatasetAccessorFactory.createHTTP(
+//				Collections.getCollectionsName(Collections.METADATA_UPDATE));
+		Model model = AnnotationWorker.createModel(tbd);
+		StmtIterator iterrdf = model.listStatements();
+		while (iterrdf.hasNext()){
+			String query = "";
+			query += NameSpaces.getInstance().printSparqlNameSpaceList();
+			query += DELETE_LINE1;
+			int i = 0;
+			while (iterrdf.hasNext() && i < 20){
+				i++;
+				Statement s = iterrdf.next();
+				String sub = s.getSubject().toString();
+				String pre = s.getPredicate().toString();
+				String obj = s.getObject().toString();
+				if (sub.startsWith("http://")){
+					sub = "<" + sub + ">";
+				} else {
+					sub = "\"" + sub + "\"";
+				}
+				if (pre.startsWith("http://")){
+					pre = "<" + pre + ">";
+				} else {
+					pre = "\"" + pre + "\"";
+				}
+				if (obj.startsWith("http://")){
+					obj = "<" + obj + ">";
+				} else {
+					obj = "\"" + obj + "\"";
+				}
+				query += " " + sub + " " + pre + " " + obj + " .";
+			}
+
+			query += LINE_LAST;
+			System.out.println(query);
+
+			UpdateRequest request = UpdateFactory.create(query);
+			UpdateProcessor processor = UpdateExecutionFactory.createRemote(request, Collections.getCollectionsName(Collections.METADATA_UPDATE));
+			processor.execute();
+		}
+	}
+
+	public static List<Map<String, Object>> rowsPopulation(File file){
+		
+		String file_name = file.getName();
+		List<Map<String, Object>> tbd = null;
+		
 		// use the new function to reverse the triple generation
-		/**
-		 * Model model = createModel(rows);
-            Model defaultModel = accessor.getModel();
-            defaultModel.remove(model);
-		 */
+		if (file_name.startsWith("SDD")) {
+			
+			SDD sdd = new SDD(file);
+			String sddName = sdd.getName();
+			Map<String, String> mapCatalog = sdd.getCatalog();
+			
+			if (mapCatalog.containsKey("Study_ID")){
+				study_id = mapCatalog.get("Study_ID");
+			}
+			
+			File dictionaryFile = sdd.downloadFile(mapCatalog.get("Data_Dictionary"), 
+					"sddtmp/" + file.getName().replace(".csv", "") + "-dd.csv");
+			File codeMappingFile = sdd.downloadFile(mapCatalog.get("Code_Mappings"), 
+					"sddtmp/" + file.getName().replace(".csv", "") + "-code-mappings.csv");
+			File codeBookFile = sdd.downloadFile(mapCatalog.get("Codebook"), 
+					"sddtmp/" + file.getName().replace(".csv", "") + "-codebook.csv");
+			sdd.readDataDictionary(dictionaryFile);
+			sdd.readCodeMapping(codeMappingFile);
+			sdd.readCodebook(codeBookFile);
+			
+			try{
+				PVGenerator pvGenerator = new PVGenerator(codeBookFile, file.getName(), 
+						study_id, sdd.getMapAttrObj());
+	
+				tbd = pvGenerator.createRows();
+				codeBookFile.delete();
+				System.out.println("Total triples : " + tbd.size());
+				
+				DASchemaAttrGenerator dasaGenerator = new DASchemaAttrGenerator(dictionaryFile, sddName, sdd.getCodeMapping());
+				tbd.addAll(dasaGenerator.createRows());
+				System.out.println("Total triples : " + tbd.size());
+	
+				DASchemaObjectGenerator dasoGenerator = new DASchemaObjectGenerator(dictionaryFile, sddName, sdd.getCodeMapping());
+	
+				tbd.addAll(dasoGenerator.createRows());
+				System.out.println("Total triples : " + tbd.size());
+				
+				DASchemaEventGenerator daseGenerator = new DASchemaEventGenerator(dictionaryFile, sddName, sdd.getCodeMapping());
+				tbd.addAll(daseGenerator.createRows());
+	
+				GeneralGenerator generalGenerator = new GeneralGenerator();
+	
+				Map<String, Object> row = new HashMap<String, Object>();
+				row.put("hasURI", kbPrefix + "DAS-" + file.getName().replace("SDD-","").replace(".csv",""));
+				row.put("a", "hasco:DASchema");
+				row.put("rdfs:label", "Schema for " + file.getName().replace("SDD-","").replace(".csv",""));
+				row.put("rdfs:comment", "");
+				generalGenerator.addRow(row);
+	
+				tbd.addAll(generalGenerator.getRows());  
+				System.out.println("Total triples : " + tbd.size());
+			} catch (Exception e) {
+				System.out.println("Error deleteAddedTriples: Triple collecting failed.");
+				AnnotationLog.printException(e, file.getName());
+			}
+		}
+		
+		return tbd;
 	}
 
 	@Restrict(@Group(AuthApplication.DATA_OWNER_ROLE))
-	public static Result downloadDataFile(String file_name, boolean isProcessed) {		
+	public static Result downloadDataFile(String file_name, boolean isProcessed) {	
 		String path = ""; 
 		if(isProcessed){
 			path = ConfigProp.getPathProc();
@@ -351,6 +514,7 @@ public class AutoAnnotator extends Controller {
 		}
 
 		File file = new File(path + "/" + file_name);
+		deleteAddedTriples(new File(path + "/" + file_name));
 		file.delete();
 
 		return redirect(routes.AutoAnnotator.index());
