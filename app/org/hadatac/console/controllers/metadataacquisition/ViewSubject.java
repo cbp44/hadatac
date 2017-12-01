@@ -139,16 +139,14 @@ public class ViewSubject extends Controller {
 		}
 		//System.out.println("in findSubjectBasic (2): '" + subject_uri + "'");
 		subjectQueryString += NameSpaces.getInstance().printSparqlNameSpaceList();
-		subjectQueryString += "SELECT ?pid ?subjectTypeLabel ?subjectLabel ?cohortLabel ?studyUri ?studyLabel WHERE { "
+		subjectQueryString += "SELECT ?pid ?subjectTypeLabel ?subjectLabel ?cohortLabel ?studyUri WHERE { "
 				+ subject_uri + " hasco:originalID ?pid . "
-				+ "?subjectUri hasco:isSubjectOf* ?cohort . "
-				+ "?studyUri rdfs:label ?studyLabel . "
-				+ "?cohort hasco:isCohortOf ?studyUri . "
+				+ subject_uri + " <http://hadatac.org/ont/hasco/isMemberOf> ?cohort . "
+				+ "?cohort <http://hadatac.org/ont/hasco/isMemberOf> ?studyUri . "
 				+ "?cohort rdfs:label ?cohortLabel . "
-				+ "OPTIONAL { ?subjectUri rdfs:label ?subjectLabel } . "
-				+ "OPTIONAL { ?subjectUri a ?subjectType . "
+				+ "OPTIONAL { " + subject_uri + " rdfs:label ?subjectLabel } . "
+				+ "OPTIONAL { " + subject_uri + " a ?subjectType . "
 				+ "			  ?subjectType rdfs:label ?subjectTypeLabel } . "
-				+ "FILTER ( ?subjectUri = " + subject_uri + " ) . "
 				+ "}";
 
 		Query basicQuery = QueryFactory.create(subjectQueryString);
@@ -181,7 +179,7 @@ public class ViewSubject extends Controller {
 			values.add("Label: " + soln.get("subjectLabel").toString());
 			values.add("Type: " + soln.get("subjectTypeLabel").toString());
 			values.add("Cohort: " + soln.get("cohortLabel").toString());
-			values.add("Study: " + soln.get("studyLabel").toString());
+//			values.add("Study: " + soln.get("studyLabel").toString());
 			subjectResult.put(subject_uri, values);
 			//System.out.println("THIS IS SUBROW*********" + subjectResult);	
 		}
@@ -257,10 +255,11 @@ public class ViewSubject extends Controller {
 
 		sampleQueryString += NameSpaces.getInstance().printSparqlNameSpaceList();
 		sampleQueryString += "SELECT ?sampleUri ?subjectUri ?subjectLabel ?sampleType ?sampleLabel ?cohortLabel ?comment WHERE { "
-				+ "?subjectUri hasco:isSubjectOf* ?cohort . "
-				+ "?sampleUri hasco:isSampleOf ?subjectUri . "
-				+ "?sampleUri rdfs:comment ?comment . "
-				+ "?cohort rdfs:label ?cohortLabel . "
+				+ "?subjectUri	<http://hadatac.org/ont/hasco/isMemberOf>	?cohort . "
+				+ "?sampleUri	<http://hadatac.org/ont/hasco/hasObjectScope>	?subjectUri . "
+				+ "?sampleUri	rdf:type	<http://semanticscience.org/resource/Sample> . "
+				+ "?sampleUri	rdfs:label	?comment . "
+				+ "?cohort	rdfs:label	?cohortLabel . "
 				+ "OPTIONAL { ?subjectUri rdfs:label ?subjectLabel } . "
 				+ "OPTIONAL { ?sampleUri rdfs:label ?sampleLabel } . "
 				+ "OPTIONAL { ?sampleUri a ?sampleType  } . "
@@ -295,7 +294,7 @@ public class ViewSubject extends Controller {
 		String sampleQueryString = "";
 		sampleQueryString += NameSpaces.getInstance().printSparqlNameSpaceList();
 		sampleQueryString += "SELECT * WHERE { "
-				+ "?s <http://hadatac.org/ont/hasco/isSampleOf> " + subject_uri + " . "
+				+ "?s <http://hadatac.org/ont/hasco/hasObjectScope> " + subject_uri + " . "
 				+ "}";
 
 		Query sampleQuery = QueryFactory.create(sampleQueryString);

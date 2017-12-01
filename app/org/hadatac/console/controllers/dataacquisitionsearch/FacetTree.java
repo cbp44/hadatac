@@ -133,8 +133,11 @@ public class FacetTree {
 		if (levelToBegin == curLevel) {
 			base.children.clear();
 			for (Pivot child : retChildren) {
-				base.children.add(child);
+				if (base != child) {
+					base.children.add(child);
+				}
 			}
+			retChildren.clear();
 		}
 		
 		return pivot;

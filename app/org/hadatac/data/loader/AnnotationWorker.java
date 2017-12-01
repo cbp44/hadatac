@@ -169,6 +169,7 @@ public class AnnotationWorker {
 			sampleGenerator.createRows();
 		} catch (Exception e) {
 			System.out.println("Error: annotateSampleIdFile() - Unable to generate Sample");
+			e.printStackTrace();
 			AnnotationLog.printException(e, file.getName());
 			return false;
 		}

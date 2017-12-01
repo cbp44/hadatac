@@ -355,7 +355,7 @@ public class Study extends HADatAcThing {
 	
 	@Override
 	public boolean equals(Object o) {
-		if((o instanceof Study) && (((Study)o).getUri() == this.getUri())) {
+		if((o instanceof Study) && (((Study)o).getUri().equals(this.getUri()))) {
 			return true;
 		} else {
 			return false;
@@ -519,6 +519,8 @@ public class Study extends HADatAcThing {
 	}
 
 	private static List<String> findObjectCollectionUris(String study_uri) {
+		System.out.println("findObjectCollectionUris() is called");
+		System.out.println("study_uri: " + study_uri);
 		List<String> ocList = new ArrayList<String>();
 		String queryString = NameSpaces.getInstance().printSparqlNameSpaceList() +
 				"SELECT ?oc_uri  WHERE {  " + 

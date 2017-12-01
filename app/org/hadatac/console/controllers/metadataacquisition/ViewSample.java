@@ -57,15 +57,16 @@ public class ViewSample extends Controller {
 		String sampleQueryString = "";
 		
     	sampleQueryString += NameSpaces.getInstance().printSparqlNameSpaceList();
-    	sampleQueryString += "SELECT ?originalID ?isSampleOf ?isObjectOf ?sampleType ?sampleLabel ?storageTempUnit ?samplingVolumeUnit ?comment WHERE { "
+    	sampleQueryString += "SELECT ?originalID ?oc ?sampleType ?sampleLabel ?sbj ?comment WHERE { "
     					+ sample_uri + " rdfs:label ?sampleLabel . "
-         				+ sample_uri + " rdfs:comment ?comment . "
+         				+ sample_uri + " rdfs:label ?comment . "
          				+ sample_uri + " rdf:type	?sampleType . "
-         				+ sample_uri + " <http://hadatac.org/ont/hasco/isObjectOf> ?isObjectOf . "
+         				+ sample_uri + " <http://hadatac.org/ont/hasco/isMemberOf> ?oc . "
          				+ sample_uri + " <http://hadatac.org/ont/hasco/originalID> ?originalID . "
-         				+ sample_uri + " <http://hadatac.org/ont/hasco/isSampleOf> ?isSampleOf . "
-         				+ sample_uri + " <http://hadatac.org/ont/hasco/hasStorageTemperatureUnit> ?storageTempUnit . "
-         				+ sample_uri + " <http://hadatac.org/ont/hasco/hasSamplingVolumeUnit> ?samplingVolumeUnit . }";
+         				+ sample_uri + " <http://hadatac.org/ont/hasco/hasObjectScope> ?sbj . "
+//         				+ sample_uri + " <http://hadatac.org/ont/hasco/hasStorageTemperatureUnit> ?storageTempUnit . "
+//         				+ sample_uri + " <http://hadatac.org/ont/hasco/hasSamplingVolumeUnit> ?samplingVolumeUnit . "
+         				+ "}";
     	
         
 		//Query basicQuery = QueryFactory.create(basicQueryString);
@@ -86,10 +87,10 @@ public class ViewSample extends Controller {
 			values.add("OriginalID: " + soln.get("originalID").toString());
 			values.add("Label: " + soln.get("sampleLabel").toString());
 			values.add("Type: " + soln.get("sampleType").toString());
-			values.add("Object Of: " + soln.get("isObjectOf").toString());
-			values.add("Sample Of: " + soln.get("isSampleOf").toString());
-			values.add("Sample Volume Unit: " + soln.get("samplingVolumeUnit").toString());
-			values.add("Storage Temperature Unit: " + soln.get("storageTempUnit").toString());
+			values.add("Object Of: " + soln.get("oc").toString());
+			values.add("Sample Of: " + soln.get("sbj").toString());
+//			values.add("Sample Volume Unit: " + soln.get("samplingVolumeUnit").toString());
+//			values.add("Storage Temperature Unit: " + soln.get("storageTempUnit").toString());
 			values.add("Comment: " + soln.get("comment").toString());
 			sampleResult.put(sample_uri,values);
 			System.out.println("THIS IS SUBROW*********" + sampleResult);
