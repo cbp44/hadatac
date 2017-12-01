@@ -37,6 +37,7 @@ public class DeploymentGenerator extends BasicGenerator {
 	@Override
 	void initMapping() {
 	    mapCol.clear();
+        System.out.println("[DeploymentGenerator] Templates.DATAACQUISITIONNAME: " + Templates.DATAACQUISITIONNAME );
 	    mapCol.put("DataAcquisitionName", Templates.DATAACQUISITIONNAME);
 	    mapCol.put("Method", Templates.METHOD);
 	    mapCol.put("Study", Templates.DASTUDYID);

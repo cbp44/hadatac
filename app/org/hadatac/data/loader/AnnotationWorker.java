@@ -1,13 +1,20 @@
 package org.hadatac.data.loader;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.String;
+import java.lang.Exception;
 import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,6 +39,7 @@ import org.hadatac.data.model.ParsingResult;
 import org.hadatac.entity.pojo.Credential;
 import org.hadatac.entity.pojo.DASVirtualObject;
 import org.hadatac.entity.pojo.DataAcquisition;
+import org.hadatac.entity.pojo.DataAcquisitionSchema;
 import org.hadatac.entity.pojo.DataFile;
 import org.hadatac.entity.pojo.SDD;
 import org.hadatac.metadata.loader.LabkeyDataHandler;
@@ -41,8 +49,7 @@ import org.hadatac.utils.Collections;
 import org.hadatac.utils.ConfigProp;
 import org.hadatac.utils.Feedback;
 import org.hadatac.utils.State;
-
-import java.lang.Exception;
+import com.google.gson.Gson;
 
 public class AnnotationWorker {
 	public static Map<String, List<DASVirtualObject>> templateLibrary = new HashMap<String, List<DASVirtualObject>>();
@@ -209,7 +216,8 @@ public class AnnotationWorker {
 				bSuccess = commitRows(deploymentGenerator.createRows(), deploymentGenerator.toString(), file.getName(), 
 						"Deployment", true);
 			} catch (Exception e){
-				System.out.println("Error in annotateDataAcquisitionFile: Deployment Generator");
+				System.out.println("[AnnotationWorker] Error in annotateDataAcquisitionFile: Deployment Generator");
+                e.printStackTrace();
 				AnnotationLog.printException(e, file.getName());
 			}
 			try{
@@ -217,7 +225,8 @@ public class AnnotationWorker {
 				bSuccess = commitRows(daGenerator.createRows(), daGenerator.toString(), file.getName(), 
 						"DataAcquisition", true);
 			} catch (Exception e){
-				System.out.println("Error in annotateDataAcquisitionFile: Data Acquisition Generator");
+				System.out.println("[AnnotationWorker] Error in annotateDataAcquisitionFile: Data Acquisition Generator");
+                e.printStackTrace();
 				AnnotationLog.printException(e, file.getName());
 			}
 		} catch (Exception e) {
@@ -278,15 +287,15 @@ public class AnnotationWorker {
 			return false;
 		}
 		
+    // Generate DataAcquisitionSchemaObjects AND DataAcquisitionSchemaVirtualObject templates 
+    // Serializes templates and writes to temp json file.
 		try {
 			DASchemaObjectGenerator dasoGenerator = new DASchemaObjectGenerator(dictionaryFile, sddName, sdd.getCodeMapping());
 			System.out.println("Calling DASchemaObjectGenerator");
 			bSuccess = commitRows(dasoGenerator.createRows(), dasoGenerator.toString(), 
 					file.getName(), "DASchemaObject", true);
-			
-			String SDDUri = ValueCellProcessing.replacePrefixEx(kbPrefix + "DAS-" + dasoGenerator.getSDDName());
-			templateLibrary.put(SDDUri, dasoGenerator.getTemplateList());
-			System.out.println("[AutoAnnotator]: adding templates for SDD " + SDDUri);
+            writeTemplateLibrary(dasoGenerator.getSDDName(), dasoGenerator.getTemplateList());
+			System.out.println("[AnnotationWorker] WRITING templates for SDD " + dasoGenerator.getSDDName());
 		} catch (Exception e) {
 			System.out.println("Error annotateDataAcquisitionSchemaFile: Unable to generate DASO.");
 			AnnotationLog.printException(e, file.getName());
@@ -324,6 +333,8 @@ public class AnnotationWorker {
 		return bSuccess;
 	}
 	
+
+// Annotates a Data Acquisition file
 	public static boolean annotateDAFile(DataFile dataFile) {
 		System.out.println("annotateDAFile: [" + dataFile.getFileName() + "]");
 		
@@ -336,6 +347,8 @@ public class AnnotationWorker {
 		String da_uri = null;
 		String deployment_uri = null;
 		String schema_uri = null;
+        DataAcquisitionSchema temp;
+        String sdd_name = null;
 
 		if (dataFile != null) {
 			da = DataAcquisition.findByUri(ValueCellProcessing.replacePrefixEx(dataFile.getDataAcquisitionUri()));
@@ -351,6 +364,10 @@ public class AnnotationWorker {
 				da_uri = da.getUri();
 				deployment_uri = da.getDeploymentUri();
 				schema_uri = da.getSchemaUri();
+                temp = DataAcquisitionSchema.find(schema_uri);
+        // No solr field contains the unaltered name of the SDD file, so we have to assume the URI assigned is 
+        //     in the format <example.com/kb#SDDNAME>, e.g., delimited by a # 
+                sdd_name = temp.getUri().split("#")[1].replace("DAS-","");
 			}
 		}
 
@@ -383,6 +400,8 @@ public class AnnotationWorker {
 			log.addline(Feedback.println(Feedback.WEB, String.format("[OK] Deployment %s specified for data acquisition %s", deployment_uri, file_name)));
 		}
 
+
+
 		String path_unproc = ConfigProp.getPathUnproc();
 		int status = -1;
 		String message = "";
@@ -413,6 +432,13 @@ public class AnnotationWorker {
 				System.out.println("annotateCSVFile: file to be parsed [" + dataFile.getFileName() + "]"); 
 				dataFile.setDatasetUri(DataFactory.getNextDatasetURI(da.getUri()));
 				da.addDatasetUri(dataFile.getDatasetUri());
+                System.out.println("[AnnotationWorker] Deserialized SDD template for " + sdd_name);
+                //for (DASVirtualObject item : readTemplateLibrary(sdd_name)){
+                //    System.out.println(item);
+                //}
+        // TODO: UPDATE this to also take the templateLibrary as an argument?
+        // Maybe separate indexMeasurements() methods for both ways? Set flag in the Parser 
+        //    object whether or not we're using object collections?
 				result_parse = parser.indexMeasurements(files, da, dataFile);
 				status = result_parse.getStatus();
 				message += result_parse.getMessage();
@@ -547,5 +573,81 @@ public class AnnotationWorker {
 		log.save();
 
 		return true;
-	}
+	}// /commitRows()
+
+	// When not using an object collection, we need to create the objects line-by-line when we  
+    //   read in the data file itself. The SDD dictates how to construct these objects (their 
+    //   types and relations, etc), and so we capture this information and store it as a set
+    //   of "templates". 
+    // The DASOGenerator handles this and stores them as a "template list" associated with the 
+    //   SDD. This method takes that template list, serializes it into JSON, and writes it to 
+    //   file in the "tmp" folder of hadatac, using the SDD name as the file name.
+    // When a data file using that SDD is read, we should open and deserialize that template 
+    //   file in order to utilize the templates at processing time. This saves us from having
+    //   to store the templates in main memory, which is not reliable.
+    private static boolean writeTemplateLibrary(String sddName, List<DASVirtualObject> templateList){
+        Gson gson = new Gson();
+        BufferedWriter bw = null;
+        String filePath = "tmp/"+ sddName + ".json";
+        System.out.println("[AnnotationWorker] json path = " + filePath);
+        try{
+            File jsonFile = new File(filePath);
+            if(!jsonFile.exists()){
+                jsonFile.createNewFile();
+            }
+            FileWriter fw = new FileWriter(jsonFile);
+            bw = new BufferedWriter(fw);
+            
+            String outJson = gson.toJson(templateList);
+            bw.write(outJson);           
+        } catch(IOException e){
+            System.out.println("[AnnotationWorker] Error writing template library :c");
+            e.printStackTrace();
+            return false;
+        } finally {
+            try{
+                if(bw != null){
+                    bw.close();
+                }
+            } catch (Exception ex){
+                System.out.println("[AnnotationWorker] Error closing template library file");
+                ex.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }// /writeTemplateLibrary
+
+    private static ArrayList<DASVirtualObject> readTemplateLibrary(String sddName){
+        Gson gson = new Gson();
+        String filePath = "tmp/"+ sddName + ".json";
+        File toRead = new File(filePath);
+        BufferedReader theJson = null;
+        ArrayList<DASVirtualObject> theLibrary = null;
+        //Type listType = new TypeToken<ArrayList<DASVirtualObject>>(){}.getType();
+        try{
+            if(!toRead.exists()){
+                System.out.println("[AnnotationWorker] ERROR: No templates found for SDD " + filePath);
+                return null;
+            }
+            theJson = new BufferedReader(new FileReader(filePath));
+            DASVirtualObject[] templates = gson.fromJson(theJson, DASVirtualObject[].class);
+            theLibrary = new ArrayList<>(Arrays.asList(templates));
+        } catch(Exception e) {
+            System.out.println("[AnnotationWorker] error deserializing templates from json!");
+            e.printStackTrace();
+            return null;
+        } finally {
+            try{
+                if( theJson != null){
+                    theJson.close();
+                }
+            } catch(Exception ex){
+                    System.out.println("[AnnotationWorker] Error closing template library file");
+                    ex.printStackTrace();
+                    return theLibrary;
+            }
+        }
+        return theLibrary;
+    }// /readTemplateLibrary()
 }

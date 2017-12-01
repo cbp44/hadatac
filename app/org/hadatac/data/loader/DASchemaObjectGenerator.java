@@ -18,7 +18,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-
 public class DASchemaObjectGenerator extends BasicGenerator {
 	final String kbPrefix = ConfigProp.getKbPrefix();
 	String startTime = "";

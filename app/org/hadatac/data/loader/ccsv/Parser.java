@@ -50,7 +50,7 @@ public class Parser {
 		System.out.println("[Parser] indexMeasurements()...");
 
 		Map<String, DataAcquisitionSchemaObject> mapSchemaObjects = new HashMap<String, DataAcquisitionSchemaObject>();
-		schema = DataAcquisitionSchema.find(da.getSchemaUri());
+		//schema = DataAcquisitionSchema.find(da.getSchemaUri());
 
 		if(!AnnotationWorker.templateLibrary.containsKey(da.getSchemaUri())){
 			System.out.println("[Parser] [WARN] no DASVirtualObject templates for this DataAcquisition. Is this correct?");
