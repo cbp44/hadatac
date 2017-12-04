@@ -8,8 +8,11 @@ import java.lang.String;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Iterator;
 
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVFormat;
 import org.hadatac.metadata.loader.ValueCellProcessing;
 import org.hadatac.utils.ConfigProp;
 
@@ -25,20 +28,26 @@ public class DASchemaAttrGenerator extends BasicGenerator {
 		super(file);
 		this.codeMap = codeMap;
 		this.SDDName = SDDName;
+
+        CSVRecord current = null;
 		
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(file));
-			String line =  null;
+            CSVParser dict = CSVFormat.DEFAULT.withHeader().parse(br);
+            Iterator<CSVRecord> dictIter = dict.iterator();
 
-			while((line = br.readLine()) != null){
-				String str[] = line.split(",");
-				if (str[5].length() > 0){
-					hasEntityMap.put(str[0], str[5]);
+			while(dictIter.hasNext()) {
+                current = dictIter.next();
+				if (current.get("Entity") != null && current.get("Entity") != ""){
+					hasEntityMap.put(current.get("Column"), current.get("Entity"));
+                    System.out.println("[DASAttrGenerator] adding to hasEntityMap: " + current.get("Column") +  " | " + current.get("Entity"));
 				}
 			}
+            dict.close();
 			br.close();
 		} catch (Exception e) {
-			System.out.println("Error Reading File");			
+            System.out.println("[DASAttrGenerator] Error opening SDD file");
+			e.printStackTrace();		
 		}
 	}
 	

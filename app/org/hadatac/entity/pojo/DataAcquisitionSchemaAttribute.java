@@ -111,7 +111,7 @@ public class DataAcquisitionSchemaAttribute {
 		this.setUnit(unit);
 		this.daseUri = daseUri;
 		this.dasoUri = dasoUri;
-		System.out.println("dasoUri: " + dasoUri);
+		//System.out.println("dasoUri: " + dasoUri);
 	}
 
 	public String getUri() {

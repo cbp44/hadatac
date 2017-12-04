@@ -495,7 +495,7 @@ public class Parser {
 			message += "[ERROR] Fail to close solr\n";
 		}
 		return new ParsingResult(0, message);
-	}
+	}// /indexMeasurements()
 
 
 	private void defineTemporaryPositions(String filename) {

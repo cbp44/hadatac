@@ -220,7 +220,7 @@ public class DataAcquisitionSchema {
 			this.attributes = attributes;
 			for (DataAcquisitionSchemaAttribute dasa : attributes) {
 				dasa.setDataAcquisitionSchema(this);
-				System.out.println("dasa.getAttribute(): " + dasa.getAttribute());
+				//System.out.println("[DataAcquisitionSchema] dasa.getAttribute(): " + dasa.getAttribute());
 				if (dasa.getAttribute().equals(ValueCellProcessing.replacePrefixEx("sio:TimeStamp"))) {
 					setTimestampLabel(dasa.getLabel());
 					System.out.println("[OK] DataAcquisitionSchema TimeStampLabel: " + dasa.getLabel());
@@ -253,8 +253,8 @@ public class DataAcquisitionSchema {
 					setInRelationToLabel(dasa.getLabel());
 					System.out.println("[OK] DataAcquisitionSchema InRelationToLabel: " + dasa.getLabel());
 				}
-				System.out.println("[OK] DataAcquisitionSchemaAttribute <" + dasa.getUri() + "> is defined in the knowledge base. " + 
-						"Entity: \""    + dasa.getEntityLabel()     + "\"; " + 
+				System.out.println("[DataAcquisitionSchema] DataAcquisitionSchemaAttribute <" + dasa.getUri() + "> is defined in the knowledge base. " + 
+						"Entity: \""    + dasa.getEntity()     + "\"; " + 
 						"Attribute: \"" + dasa.getAttributeLabel() + "\"; " + 
 						"Unit: \""      + dasa.getUnitLabel()       + "\""); 
 				//System.out.println("     DataAcquisitionSchemaAttribute DASO URI: \"" + dasa.getObjectUri() + "\"");
