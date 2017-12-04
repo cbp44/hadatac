@@ -13,6 +13,8 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+
 
 public class FacetHandler {
 
@@ -89,13 +91,13 @@ public class FacetHandler {
 		}
 	}
 
-	public List<String> values(String facetName) {
-		List<String> list = new ArrayList<String>();
+	public String values(String facetName) {
+		List<String> results = new ArrayList<String>();
 		for (Object obj : getFacetByName(facetName)) {
 			Pair pair = (Pair)obj;
-			list.add(pair.getValue());
+			results.add(pair.getValue());
 		}
-		return  list;
+		return (new Gson()).toJson(results);
 	}
 
 	public String toJSON() {
@@ -109,12 +111,12 @@ public class FacetHandler {
 		return "";
 	}
 
-	private void loadFacet(String facetName, Object data, String solrFieldName) {
+	private void loadFacet(String facetName, Object data) {
 		JSONArray arr = (JSONArray)data;
 		if (null != arr) {
 			for (int i = 0; i < arr.size(); i++) {
 				for (Object field : ((JSONObject)arr.get(i)).keySet()) {
-					Pair pair = new Pair(solrFieldName, (String)((JSONObject)arr.get(i)).get((String)field));
+					Pair pair = new Pair((String)field, (String)((JSONObject)arr.get(i)).get((String)field));
 					getFacetByName(facetName).add(pair);
 				}
 			}
@@ -128,11 +130,11 @@ public class FacetHandler {
 		
 		try {
 			JSONObject obj = (JSONObject)(new JSONParser().parse(str));
-			loadFacet(ENTITY_CHARACTERISTIC_FACET, obj.get(ENTITY_CHARACTERISTIC_FACET), "characteristic_uri_str");
-			loadFacet(STUDY_FACET, obj.get(STUDY_FACET), "acquisition_uri_str");
-			loadFacet(UNIT_FACET, obj.get(UNIT_FACET), "unit_uri_str");
-			loadFacet(TIME_FACET, obj.get(TIME_FACET), "timestamp_date");
-			loadFacet(PLATFORM_INSTRUMENT_FACET, obj.get(PLATFORM_INSTRUMENT_FACET), "instrument_uri_str");
+			loadFacet(ENTITY_CHARACTERISTIC_FACET, obj.get(ENTITY_CHARACTERISTIC_FACET));
+			loadFacet(STUDY_FACET, obj.get(STUDY_FACET));
+			loadFacet(UNIT_FACET, obj.get(UNIT_FACET));
+			loadFacet(TIME_FACET, obj.get(TIME_FACET));
+			loadFacet(PLATFORM_INSTRUMENT_FACET, obj.get(PLATFORM_INSTRUMENT_FACET));
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}

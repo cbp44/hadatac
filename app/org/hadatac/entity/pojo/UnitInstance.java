@@ -3,6 +3,7 @@ package org.hadatac.entity.pojo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import java.util.HashMap;
 
 import org.apache.solr.client.solrj.SolrClient;
@@ -57,7 +58,6 @@ public class UnitInstance extends HADatAcThing implements Comparable<UnitInstanc
 			solr.close();
 			Pivot pivot = Measurement.parseFacetResults(queryResponse);
 			Map<HADatAcThing, List<HADatAcThing>> result = parsePivot(pivot);
-			System.out.println("UnitInstance Parse Pivot: " + result);
 			return parsePivot(pivot);
 		} catch (Exception e) {
 			System.out.println("[ERROR] Unit.getTargetFacets() - Exception message: " + e.getMessage());
@@ -71,8 +71,14 @@ public class UnitInstance extends HADatAcThing implements Comparable<UnitInstanc
 		for (Pivot pivot_ent : pivot.children) {
 			UnitInstance unit = new UnitInstance();
 			unit.setUri(pivot_ent.value);
-			unit.setLabel(Unit.find(pivot_ent.value).getLabel());
+			Unit unit_temp = Unit.find(pivot_ent.value);
+			if (unit_temp != null) {
+				unit.setLabel(unit_temp.getLabel());
+			} else {
+				unit.setLabel("(empty)");
+			}
 			unit.setCount(pivot_ent.count);
+			unit.setField("unit_uri_str");
 			if (!results.containsKey(unit)) {
 				List<HADatAcThing> attributes = new ArrayList<HADatAcThing>();
 				results.put(unit, attributes);

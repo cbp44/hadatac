@@ -102,7 +102,7 @@
                 <th>PID</th>
                 <th>SID</th>       
                 <th>Time</th>
-                <!-- <th>Object URI</th> -->     
+                <th>Object URI</th>
                 <th>Location</th>
               </tr>
             </thead>
@@ -115,8 +115,15 @@
                 	<td>@document.getValue()</td>
                 	<td>@document.getObjectPID()</td>
                 	<td>@document.getObjectSID()</td>
-                	<td>@document.getTimestamp()</td>
-                	<!-- <td>@document.getObjectUri()</td> -->
+                	<td>@if(!document.getAbstractTime().equals("")) {
+                	    @document.getAbstractTime()
+                    } else {
+                        @if(document.getTimestamp() != null) {
+                        } else {
+                            @document.getTimestamp()
+                        }
+                    }</td>
+                	<td>@document.getObjectUri()</td>
                 	<td>@document.getLocation()</td>
                 </tr>
                 }
