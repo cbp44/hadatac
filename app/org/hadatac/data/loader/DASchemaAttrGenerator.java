@@ -38,7 +38,7 @@ public class DASchemaAttrGenerator extends BasicGenerator {
 
 			while(dictIter.hasNext()) {
                 current = dictIter.next();
-				if (current.get("Entity") != null && current.get("Entity") != ""){
+				if (current.get("Entity") != null && current.get("Entity").trim().length() > 0){
 					hasEntityMap.put(current.get("Column"), current.get("Entity"));
                     System.out.println("[DASAttrGenerator] adding to hasEntityMap: " + current.get("Column") +  " | " + current.get("Entity"));
 				}
@@ -112,6 +112,7 @@ public class DASchemaAttrGenerator extends BasicGenerator {
 				return codeMap.get(hasEntityMap.get(rec.get(mapCol.get("AttributeOf"))));
 			} else {
 				if (hasEntityMap.containsKey(rec.get(mapCol.get("AttributeOf")))){
+                // TODO get the URI of the corresponding DASO instead of that entity's type?
 					return hasEntityMap.get(rec.get(mapCol.get("AttributeOf")));
 				} else {
 					return rec.get(mapCol.get("AttributeOf"));

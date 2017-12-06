@@ -38,7 +38,7 @@ public class DASchemaEventGenerator extends BasicGenerator {
 
 			while(dictIter.hasNext()) {
                 current = dictIter.next();
-                if(current.get("Time") != null && current.get("Time") != ""){
+                if(current.get("Time") != null && current.get("Time").trim().length() > 0){
                     timeList.add(current.get("Time"));
                     //System.out.println("[DASEGenerator] adding to timeList: " + current.get("Time"));
                 }

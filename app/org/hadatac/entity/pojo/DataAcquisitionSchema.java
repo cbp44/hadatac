@@ -253,10 +253,10 @@ public class DataAcquisitionSchema {
 					setInRelationToLabel(dasa.getLabel());
 					System.out.println("[OK] DataAcquisitionSchema InRelationToLabel: " + dasa.getLabel());
 				}
-				System.out.println("[DataAcquisitionSchema] DataAcquisitionSchemaAttribute <" + dasa.getUri() + "> is defined in the knowledge base. " + 
+				/*System.out.println("[DataAcquisitionSchema] DataAcquisitionSchemaAttribute <" + dasa.getUri() + "> is defined in the knowledge base. " + 
 						"Entity: \""    + dasa.getEntity()     + "\"; " + 
 						"Attribute: \"" + dasa.getAttributeLabel() + "\"; " + 
-						"Unit: \""      + dasa.getUnitLabel()       + "\""); 
+						"Unit: \""      + dasa.getUnitLabel()       + "\""); */
 				//System.out.println("     DataAcquisitionSchemaAttribute DASO URI: \"" + dasa.getObjectUri() + "\"");
 				//System.out.println("     DataAcquisitionSchemaAttribute DASE URI: \"" + dasa.getEventUri() + "\"");
 			}

@@ -230,7 +230,7 @@ public class DataAcquisitionSchemaObject {
 	}
 
 	public static DataAcquisitionSchemaObject find(String uri) {
-		System.out.println("Looking for data acquisition schema objects with uri: " + uri);
+		//System.out.println("[DASO] Looking for data acquisition schema objects with uri: " + uri);
 		DataAcquisitionSchemaObject object = null;
 		String queryString = NameSpaces.getInstance().printSparqlNameSpaceList() + 
 				"SELECT ?position ?entity ?partOfSchema ?role ?inRelationTo ?relation WHERE { " + 

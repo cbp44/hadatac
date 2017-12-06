@@ -430,7 +430,7 @@ public class DataAcquisitionSchemaAttribute {
 
 	public static DataAcquisitionSchemaAttribute find (String dasa_uri) {
 		DataAcquisitionSchemaAttribute dasa = null;
-		System.out.println("Looking for data acquisition schema attribute with URI " + dasa_uri);
+		//System.out.println("Looking for data acquisition schema attribute with URI " + dasa_uri);
 		if (dasa_uri.startsWith("http")) {
 			dasa_uri = "<" + dasa_uri + ">";
 		}

@@ -50,8 +50,9 @@ public class Parser {
 		System.out.println("[Parser] indexMeasurements()...");
 
 		Map<String, DataAcquisitionSchemaObject> mapSchemaObjects = new HashMap<String, DataAcquisitionSchemaObject>();
-		//schema = DataAcquisitionSchema.find(da.getSchemaUri());
+		schema = DataAcquisitionSchema.find(da.getSchemaUri());
 
+        /*
 		if(!AnnotationWorker.templateLibrary.containsKey(da.getSchemaUri())){
 			System.out.println("[Parser] [WARN] no DASVirtualObject templates for this DataAcquisition. Is this correct?");
 			System.out.println("[Parser] Could not retrieve template list for " + da.getSchemaUri());
@@ -65,7 +66,7 @@ public class Parser {
 			for(DASVirtualObject item : templateList){
 				System.out.println(item);
 			}
-		}
+		}*/
 
 		String message = "";
 
@@ -238,6 +239,7 @@ public class Parser {
 						measurement.setValue(originalValue);
 					}
 				}
+                System.out.println("[Parser] VALUE has been set");
 
 				/*============================*
 				 *                            *
@@ -280,6 +282,7 @@ public class Parser {
 				} else if (dasa.getEventUri() != null && !dasa.getEventUri().equals("")) {
 					measurement.setAbstractTime(dasa.getEventUri());
 				}
+                System.out.println("[Parser] TIME has been set");
 
 				/*============================*
 				 *                            *
@@ -287,6 +290,7 @@ public class Parser {
 				 *                            *
 				 *============================*/
 				measurement.setStudyUri(da.getStudyUri());
+                System.out.println("[Parser] STUDY has been set");
 
 				/*=============================*
 				 *                             *
@@ -325,6 +329,7 @@ public class Parser {
 					measurement.setPID("");
 					measurement.setSID("");
 				}
+                System.out.println("[Parser] SID, PID have been set");
 
 				//String auxUri = rowInstances.get(dasa.getObjectUri()).getUri();
 				
@@ -339,10 +344,11 @@ public class Parser {
 						dasa.getLocalName() + "-" + total_count);
 				measurement.setOwnerUri(da.getOwnerUri());
 				measurement.setAcquisitionUri(da.getUri());
+                System.out.println("[Parser] URI, OWNER, DA URI have been set");
 				
 				/*======================================*
 				 *                                      *
-				 *   SET ENTITY AND CHARACTERISTIC URI  *              *
+				 *   SET ENTITY AND CHARACTERISTIC URI  * 
 				 *                                      *
 				 *======================================*/
 				measurement.setSchemaAttributeUri(dasa.getUri().replace("<", "").replace(">", ""));
@@ -350,11 +356,15 @@ public class Parser {
 				String dasoUri = dasa.getObjectUri();
 				if (mapSchemaObjects.containsKey(dasoUri)) {
 					daso = mapSchemaObjects.get(dasoUri);
+                    System.out.println("[Parser] daso = " + daso.getLabel() + " \n\tdasoUri = " + dasoUri);
 				} else {
 					daso = DataAcquisitionSchemaObject.find(dasoUri);
 					mapSchemaObjects.put(dasoUri, daso);
+                    System.out.println("[Parser] daso = " + daso.getLabel() + " \n\tdasoUri = " + dasoUri);
 				}
 				
+
+            // CHEAR code: 
 				if (null != daso) {
 					if (daso.getPositionInt() > 0) {
 						// values of daso exist in the columns
@@ -369,6 +379,7 @@ public class Parser {
 							measurement.setEntityUri(dasoValue);
 						}
 					} else {
+              // this is used when there's a Subject object collection already in the hadatac system
 						if (!schema.getOriginalIdLabel().equals("")) {
 							String originalId = record.get(posOriginalId);
 							// values of daso might exist in the triple store
@@ -401,6 +412,7 @@ public class Parser {
 					measurement.setEntityUri(dasa.getObjectUri());
 				}
 				measurement.setCharacteristicUri(dasa.getAttribute());
+                System.out.println("[Parser] DASO has been set");
 				
 				/*=============================*
 				 *                             *
@@ -429,6 +441,7 @@ public class Parser {
 						measurement.setUnitUri("");
 					}
 				}
+                System.out.println("[Parser] UNIT has been set");
 
 				/*=================================*
 				 *                                 *
@@ -436,13 +449,16 @@ public class Parser {
 				 *                                 *
 				 *=================================*/
 				measurement.setDatasetUri(dataFile.getDatasetUri());
+                System.out.println("[Parser] DATASET has been set");
 
 				try {
 					solr.addBean(measurement);
-				} catch (IOException | SolrServerException e) {
+				} catch (Exception e) {
 					System.out.println("[ERROR] SolrClient.addBean - e.Message: " + e.getMessage());
+                    e.printStackTrace();
 				}
 
+                System.out.println("[Parser] TRYING to commit?");    
 				// INTERMEDIARY COMMIT
 				if((++total_count) % batch_size == 0) {
 					try {
@@ -461,7 +477,7 @@ public class Parser {
 						}
 						return new ParsingResult(1, message);
 					}
-				}
+				}// /intermediary commit
 			}
 		}
 
