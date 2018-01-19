@@ -7,9 +7,8 @@ scalaVersion := "2.11.8"
 version := "1.0-SNAPSHOT"
 
 val appDependencies = Seq(
-  "be.objectify" %% "deadbolt-java" % "2.5.0",
+  "be.objectify" %% "deadbolt-java-gs" % "2.6.0",
   "com.feth" %% "play-authenticate" % "0.8.3",
-  cache,
   evolutions,
   javaWs,
   javaJdbc,
@@ -46,8 +45,8 @@ lazy val root = project.in(file("."))
     libraryDependencies ++= appDependencies
   )
 
-//libraryDependencies += guice
-//libraryDependencies += openId
+libraryDependencies += guice
+libraryDependencies += openId
 
 //dependencyOverrides += "com.typesafe.play" % "twirl-api_2.11" % "1.3.2"
 //dependencyOverrides += "com.typesafe.play" % "play-logback_2.11" % "2.6.0"
