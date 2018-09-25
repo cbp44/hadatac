@@ -1,3 +1,12 @@
+/* #info {
+
+} */
+
+svg.node-tree {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
 .node circle {
   cursor: pointer;
   fill: #fff;
@@ -7,6 +16,7 @@
 
 .node text {
   font-size: 11px;
+  cursor: pointer;
 }
 
 path.link {
@@ -14,4 +24,3 @@ path.link {
   stroke: #ccc;
   stroke-width: 1.5px;
 }
-

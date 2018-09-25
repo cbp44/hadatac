@@ -46,8 +46,11 @@ h1 {
     border-width:1px;
     border-color:lightsteelblue;
     overflow-x:auto;
-    height:650px;
+    text-align: center;
+    /* height:650px; */
     overflow-y:auto;
+    min-height: 400px;
+    margin-bottom:10px;
 }
 
 .panel-group{
@@ -71,12 +74,12 @@ h1 {
     text-indent:20px;
 }
 
-table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { 
-    content: " \25B4\25BE" 
+table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after {
+    content: " \25B4\25BE"
 }
 
 #rcorners {
     border-radius: 15px;
     border: 2px solid DarkBlue;
-    padding: 20px; 
+    padding: 20px;
 }

@@ -12,25 +12,17 @@
 
 @main("Hierarchies") {
 
-  <!--	@for(indicatorKey <- indicatorMap.keySet()){
-		@for(indicators <- indicatorMap.get(indicatorKey)) {
-			@if(category == indicators.replace(" ","").replace(",","")){
-				@indicator_navigation(category,indicatorMap,indicatorKey)
-			}
-		}
-	} -->
-
   	@for(indicatorKey <- indicatorMap.keySet()){
 		@for(indicators <- indicatorMap.get(indicatorKey)) {
 			@if(category == indicators.replace(" ","").replace(",","")){
 				@indicator_concept(category,indicatorMap,indicatorKey)
 			}
 		}
-	} 
+	}
 
     <div class="container-fluid container-spaced">
       <div class="row">
-        <div class="col-sm-9 col-md-9 main">
+        <div class="col-sm-9 col-md-10 main">
             <ul class="nav nav-tabs hidden-print">
                 @if(results.treeResults != ""){
                     <li class="active" onclick="info_on('info')"><a data-toggle="tab" href="#tree">
@@ -58,28 +50,17 @@
                 <div id="tree" class="hidden-print tab-pane fade in active">
                     <div id="query" data-results="@results.treeResults"></div>
                     <div id="body"></div>
-                        <script type="text/javascript" src="/hadatac/assets/javascripts/d3.js"></script>
-                        <script type="text/javascript" src="/hadatac/assets/javascripts/d3.layout.js"></script>
-                        <script type="text/javascript" src="/hadatac/assets/javascripts/treeRenderer.js"></script>
-                        <script type="text/javascript">
-                        	d3.selectAll(".node")
-                                .on('mouseover', function (d,i){
-                                    var item = d.name.replace(/\W/g, '');
-                                    var stuff = document.getElementById(item).innerHTML;
-                                    var infobox = document.getElementById('info');
-                                    infobox.innerHTML = stuff;
-                                });
-			            </script>
-                    <link type="text/css" rel="stylesheet" href="/hadatac/assets/stylesheets/treeRenderer.css"/>
+
                 </div>
             }
           </div>
     </div>
-    <div class="col-md-3 col-sm-3 hidden-print">
+    <div class="col-md-2 col-sm-3 hidden-print">
         <div class="tab-spacer"></div>
-        <div id="info" class="infobox" style="display:block"></div>
+        <div id="info" class="infobox" style="display:block">
+            <h3 class="node-name"></h2>
+        </div>
     </div>
-    <script type="text/javascript" src="/hadatac/assets/javascripts/extra.js"></script> 
 
     <div class="visible-print-block">
         <table>
@@ -88,4 +69,11 @@
             }
         </table>
     </div>
+
+    <script type="text/javascript" src="/hadatac/assets/javascripts/d3.js"></script>
+    <script type="text/javascript" src="/hadatac/assets/javascripts/d3.layout.js"></script>
+    <script type="text/javascript" src="/hadatac/assets/javascripts/treeRenderer.js"></script>
+    <link type="text/css" rel="stylesheet" href="/hadatac/assets/stylesheets/treeRenderer.css"/>
+    <script type="text/javascript" src="/hadatac/assets/javascripts/extra.js"></script>
+
 }
