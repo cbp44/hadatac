@@ -11,3 +11,4 @@ services:
             # Mounts the local app directory to the app directory in the Docker container
             # Any changes made locally automatically show up in the Docker container.
             - ./app:/root/app/app
+            - ./public:/root/app/public
